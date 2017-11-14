@@ -2,12 +2,16 @@ const parse = require("csv-parse");
 const fs = require("fs");
 const transform = require("stream-transform");
 const XMLWriter = require("xml-writer");
+const argv = require("minimist")(process.argv.slice(2));
 
 const input = fs.createReadStream("in.csv");
 const output = fs.createWriteStream("out.xml");
 const parser = parse({from: 2});
 const xw = new XMLWriter(true, (str, encoding) => output.write(str, encoding));
-xw.startDocument('1.0', 'UTF-8').startElement("testsuite").writeAttribute("name", "Test Cases");
+const topLevel = argv.root || "Test Cases";
+const skipLevels = argv.level || 1;
+xw.startDocument('1.0', 'UTF-8').startElement("testsuite").writeAttribute("name", topLevel);
+
 let testScript;
 let oldExternalId = "";
 const transformer = transform((record) => {
@@ -31,7 +35,7 @@ const transformer = transform((record) => {
 				description: record[6],
 				executionMethod: record[7],
 				externalId: record[8].replace(/[{}]/g, ""),
-				packagePath: record[9].split("|").slice(1),
+				packagePath: record[9].split("|").slice(skipLevels),
 				steps: [],
 				preconditions: record[11],
 				postconditions: record[12],

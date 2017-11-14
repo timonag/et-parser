@@ -30,5 +30,11 @@ node parser.js
 ```
 It will generate __out.xml__ in the same folder. Check it for correct values.
 
+## Script parameters
+By default, script will inherit ET package structure and replace top level with "Test Cases". For example, following *Test Cases|Regression Tests|FRONTEND APPS|Watching Recommendation UI* will result in this TestLink folders *Test Cases > Regression Tests > FRONTEND APPS > Watching Recommendation UI*. If needed to modify the structure, use parameters: `level` and `root`:
+* `level` - controls the number of packages to skip, when generating result xml. With `level=3` previous example will
+  result in this folders *Test Cases > Watching Recommendation UI*. Default is `1`.
+* `root` - define root folder name. Default is `Test Cases`.
+
 # Import the package
 Navigate to the root of the TestLink project. Start import by uploading file.
