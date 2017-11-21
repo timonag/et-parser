@@ -44,7 +44,9 @@ const transformer = transform((record) => {
 		}
 		testScript.steps.push(step);
 	}
-
+	if(record === "EOF") {
+		return testScript;
+	}
 	return prevScript;
 });
 
@@ -103,12 +105,16 @@ const convertToXML = transform((testScript) => {
 
 			.startElement(() => "status")
 				.writeCData(status)
-			.endElement()
+			.endElement();
 
-			.startElement(() => "preconditions")
-				.writeCData(testScript.preconditions)
-			.endElement()
+		if (testScript.preconditions) {
+			xw
+				.startElement(() => "preconditions")
+					.writeCData(testScript.preconditions)
+				.endElement();
+		}
 
+		xw
 			.startElement(() => "steps")
 				testScript.steps.forEach(step => {
 					let expectedResult = `<p>${step.expectedResult.replace(/\n/g, "</p><p>")}</p>`;
@@ -161,23 +167,30 @@ const convertToXML = transform((testScript) => {
 					.startElement(() => "value")
 						.writeCData(testScript.type)
 					.endElement()
-				.endElement()
-				.startElement(() => "custom_field")
-					.startElement(() => "name")
-						.writeCData("postconditions")
-					.endElement()
-					.startElement(() => "value")
-						.writeCData(testScript.postconditions)
-					.endElement()
-				.endElement()
-				.startElement(() => "custom_field")
-					.startElement(() => "name")
-						.writeCData("objective")
-					.endElement()
-					.startElement(() => "value")
-						.writeCData(testScript.objective)
-					.endElement()
-				.endElement()
+				.endElement();
+			if (testScript.postconditions){
+				xw
+					.startElement(() => "custom_field")
+						.startElement(() => "name")
+							.writeCData("postconditions")
+						.endElement()
+						.startElement(() => "value")
+							.writeCData(testScript.postconditions)
+						.endElement()
+					.endElement();
+			}
+			if (testScript.objective) {
+				xw
+					.startElement(() => "custom_field")
+						.startElement(() => "name")
+							.writeCData("objective")
+						.endElement()
+						.startElement(() => "value")
+							.writeCData(testScript.objective)
+						.endElement()
+					.endElement();
+			}
+			xw
 				.startElement(() => "custom_field")
 					.startElement(() => "name")
 						.writeCData("execution_type")
