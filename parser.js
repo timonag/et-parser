@@ -10,7 +10,21 @@ const parser = parse({from: 2});
 const xw = new XMLWriter(true, (str, encoding) => output.write(str, encoding));
 const topLevel = argv.root || "Test Cases";
 const skipLevels = argv.level || 1;
+const numberOfTestFields = 13;
 xw.startDocument('1.0', 'UTF-8').startElement("testsuite").writeAttribute("name", topLevel);
+
+function escapeXML(str) {
+	return Array.from(str).map(char => char.charCodeAt(0) <= 127 ? char : console.log(char)).join('')
+	return str.replace(/[<>&'"]/g, (c) => {
+		switch (c) {
+			case '<': return '&lt;';
+			case '>': return '&gt;';
+			case '&': return '&amp;';
+			case '\'': return '&apos;';
+			case '"': return '&quot;';
+		}
+	});
+}
 
 let testScript;
 let oldExternalId = "";
@@ -18,28 +32,29 @@ const transformer = transform((record) => {
 	let prevScript;
 	if (typeof record === "object") {
 		let step = {
-			stepNum: record[13],
-			description: record[14],
-			expectedResult: record[15],
-			data: record[16],
-			notes: record[17]
+			stepNum: record[numberOfTestFields + 1],
+			description: escapeXML(record[numberOfTestFields + 2]),
+			expectedResult: escapeXML(record[numberOfTestFields + 3]),
+			data: escapeXML(record[numberOfTestFields + 4]),
+			notes: escapeXML(record[numberOfTestFields + 5]),
 		};
 		if(record[0] === "TestScript") {
 			prevScript = testScript;
 			testScript = {
 				number: record[1],
-				name: record[2],
+				name: escapeXML(record[2]),
 				priority: record[3],
 				status: record[4],
 				type: record[5],
-				description: record[6],
+				description: escapeXML(record[6]),
 				executionMethod: record[7],
 				externalId: record[8].replace(/[{}]/g, ""),
 				packagePath: record[9].split("|").slice(skipLevels),
 				steps: [],
-				preconditions: record[11],
-				postconditions: record[12],
-				objective: record[10]
+				preconditions: escapeXML(record[11]),
+				postconditions: escapeXML(record[12]),
+				objective: escapeXML(record[10]),
+				notes: escapeXML(record[13]),
 			};
 		}
 		testScript.steps.push(step);
@@ -187,6 +202,17 @@ const convertToXML = transform((testScript) => {
 						.endElement()
 						.startElement(() => "value")
 							.writeCData(testScript.objective)
+						.endElement()
+					.endElement();
+			}
+			if (testScript.notes) {
+				xw
+					.startElement(() => "custom_field")
+						.startElement(() => "name")
+							.writeCData("Notes")
+						.endElement()
+						.startElement(() => "value")
+							.writeCData(testScript.notes)
 						.endElement()
 					.endElement();
 			}

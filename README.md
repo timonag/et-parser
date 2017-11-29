@@ -19,6 +19,7 @@ Open a package you need to export. Then select following columns in the order:
 11.  Objective
 12.  Pre Condition
 13.  Post Condition
+14.  Notes
 
 Then export the package with default options: CSV, Unicode, Comma, Visible Columns Only, Include Header, Include Steps.
 Save the file as __in.csv__ in the same folder with the current script.
